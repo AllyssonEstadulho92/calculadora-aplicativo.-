@@ -23,6 +23,7 @@ let toastTimer;
 let imageURL = null;
 let activeDialogContext = null;
 let measureLoading = false;
+let measurePending = false;
 
 function notify(message) {
   const node = $('toast'); node.textContent = message; node.hidden = false;
@@ -61,7 +62,7 @@ function renderRoute() {
   $('laterToggle').setAttribute('aria-expanded', String(!$('laterField').hidden));
   const isReady = state.route.from && state.route.to;
   $('measureRoute').disabled = !isReady || measureLoading;
-  $('measureRoute').textContent = measureLoading ? 'A calcular o percurso…' : 'Calcular percurso pelas moradas ↗';
+  $('measureRoute').textContent = measureLoading ? 'A consultar o percurso…' : 'Atualizar distância e tempo ↻';
   const route = $('routeSummary');
   route.innerHTML = isReady ? `<span aria-hidden="true">◉</span><div><strong>${esc(state.route.from)}</strong> <span class="arrow">→</span> <strong>${esc(state.route.to)}</strong>${isLaterRoute() ? `<small> · Viagem futura: ${esc(new Date(state.route.later).toLocaleString('pt-PT', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' }))}</small>` : ''}</div>` : 'Escolhe primeiro um percurso.';
   const mapLink = $('mapLink');
@@ -76,6 +77,18 @@ function renderRoute() {
     <div class="distance-locations"><span>Partida encontrada: ${esc(measure.fromLabel)}</span><span>Destino encontrado: ${esc(measure.toLabel)}</span></div>
     ${measure.uncertain ? '<p class="distance-warning">⚠ Uma das moradas foi localizada de forma aproximada. Confirma a rua e o número.</p>' : ''}
     <small>Distância rodoviária estimada, sem trânsito em tempo real. Consulta: ${esc(new Date(measure.at).toLocaleString('pt-PT', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' }))}.</small>`;
+}
+
+function renderOfficialSources() {
+  const ready = !!(state.route.from && state.route.to);
+  for (const id of ['openUber', 'openBolt', 'openMoovit']) {
+    $(id).setAttribute('aria-disabled', String(!ready));
+    $(id).tabIndex = ready ? 0 : -1;
+  }
+  $('copyRoute').disabled = !ready;
+  $('officialSourceStatus').textContent = ready
+    ? 'As plataformas mostram os seus próprios preços e horários. Esta aplicação não tem acesso às cotações das tuas contas. Consulta a fonte e regista o valor apresentado para o comparar.'
+    : 'Confirma as duas moradas para abrir as plataformas.';
 }
 
 function renderFavoriteChips() {
@@ -145,7 +158,7 @@ function renderReports() {
   $('budgetProgress').value = Math.min(100, report.percentage);
 }
 
-function render() { renderRoute(); renderFavoriteChips(); renderQuotes(); renderSuggestion(); renderCosts(); renderTrips(); renderReports(); }
+function render() { renderRoute(); renderOfficialSources(); renderFavoriteChips(); renderQuotes(); renderSuggestion(); renderCosts(); renderTrips(); renderReports(); }
 
 function formError(id, text) { const el = $(id); el.textContent = text; el.hidden = !text; }
 
@@ -157,11 +170,13 @@ $('routeForm').addEventListener('submit', event => {
   if (!$('laterField').hidden && (!$('routeLater').value || Date.parse($('routeLater').value) <= Date.now())) { notify('Escolhe uma data e hora futuras para “Mais tarde”.'); return; }
   const existingMeasure = routeKey(from, to) === routeKey(state.route.from, state.route.to) ? state.route.measure : null;
   state.route = { from, to, later: $('laterField').hidden ? '' : $('routeLater').value, measure: existingMeasure };
-  persist(); render(); notify('Percurso confirmado. Agora adiciona os preços que estás a ver.');
+  persist(); render(); notify('Percurso confirmado. A consultar automaticamente a distância e o tempo.');
+  void runRouteMeasurement();
 });
 
-$('measureRoute').addEventListener('click', async () => {
-  if (measureLoading || !state.route.from || !state.route.to) return;
+async function runRouteMeasurement() {
+  if (!state.route.from || !state.route.to) return;
+  if (measureLoading) { measurePending = true; return; }
   const from = state.route.from, to = state.route.to;
   const key = routeKey(from, to);
   measureLoading = true; renderRoute();
@@ -172,7 +187,26 @@ $('measureRoute').addEventListener('click', async () => {
     persist(); renderCosts();
     notify('Trajeto estimado. Confirma os pontos encontrados e o preço nas aplicações.');
   } catch (error) { notify(routeErrorMessage(error)); }
-  finally { measureLoading = false; renderRoute(); }
+  finally {
+    measureLoading = false; renderRoute();
+    if (measurePending) { measurePending = false; void runRouteMeasurement(); }
+  }
+}
+
+$('measureRoute').addEventListener('click', () => { void runRouteMeasurement(); });
+
+document.querySelectorAll('#providerLinks a').forEach(link => link.addEventListener('click', event => {
+  if (!state.route.from || !state.route.to) { event.preventDefault(); notify('Confirma primeiro a partida e o destino.'); }
+}));
+
+$('copyRoute').addEventListener('click', async () => {
+  if (!state.route.from || !state.route.to) return;
+  const routeText = `Partida: ${state.route.from}\nDestino: ${state.route.to}`;
+  try {
+    if (!navigator.clipboard?.writeText) throw new Error('clipboard-unavailable');
+    await navigator.clipboard.writeText(routeText);
+    notify('Percurso copiado. Podes colar as moradas na aplicação escolhida.');
+  } catch { notify('Não foi possível copiar neste navegador. Usa as moradas apresentadas acima.'); }
 });
 
 $('swapRoute').addEventListener('click', () => { const first = $('routeFrom').value; $('routeFrom').value = $('routeTo').value; $('routeTo').value = first; });

@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="theme-color" content="#142624">
-  <meta name="description" content="Consulta a distância do percurso por morada, compara ofertas Uber e Bolt e acompanha os custos reais das tuas viagens.">
+  <meta name="description" content="Consulta o percurso por morada num passo, abre as fontes oficiais de transporte, compara ofertas e acompanha as despesas de viagem.">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
   <meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' blob: data:; script-src 'self'; style-src 'self'; connect-src 'self' https://api.mygeocode.com https://router.project-osrm.org; object-src 'none'; base-uri 'self'; form-action 'self';">
@@ -28,7 +28,7 @@
         <button class="nav-link" data-view="relatorios" type="button">Relatórios</button>
         <button class="nav-link" data-view="definicoes" type="button">Definições</button>
       </nav>
-      <div class="topbar-meta"><span class="status-light"></span> Os teus dados, no teu dispositivo <span class="version">v1.1.0</span></div>
+      <div class="topbar-meta"><span class="status-light"></span> Os teus dados, no teu dispositivo <span class="version">v1.2.0</span></div>
     </div>
   </header>
 
@@ -60,13 +60,25 @@
                 <button type="button" id="swapRoute" class="swap-button" aria-label="Trocar partida e destino" title="Trocar partida e destino">⇅</button>
               </div>
               <div id="favoriteChips" class="favorite-chips" aria-label="Locais favoritos"></div>
-              <div class="route-actions"><button type="button" id="laterToggle" class="quiet-button"><span aria-hidden="true">◷</span> Mais tarde</button><button type="submit" class="primary-button">Confirmar percurso <span aria-hidden="true">→</span></button></div>
+              <div class="route-actions"><button type="button" id="laterToggle" class="quiet-button"><span aria-hidden="true">◷</span> Mais tarde</button><button type="submit" class="primary-button">Confirmar e calcular percurso <span aria-hidden="true">→</span></button></div>
               <label class="later-field" id="laterField" hidden for="routeLater">Data e hora planeadas <span class="field-help">Não reserva nem consulta preços futuros</span><input id="routeLater" type="datetime-local"></label>
+              <p class="route-consent">Ao confirmar, as moradas serão consultadas no My Geocode e as coordenadas no OSRM. A distância e o tempo serão estimados automaticamente, sem consultar preços Uber/Bolt.</p>
             </form>
           </section>
 
+          <section class="panel providers-panel" aria-labelledby="providers-title">
+            <div class="section-header"><div><div class="section-kicker">02 / FONTES OFICIAIS</div><h2 id="providers-title">Ver o preço na origem</h2><p class="section-description">Abre a plataforma para veres a cotação personalizada da tua conta.</p></div><span class="mini-tag">Sem valores inventados</span></div>
+            <div id="providerLinks" class="official-links">
+              <a id="openUber" class="official-link" href="https://www.uber.com/" target="_blank" rel="noopener noreferrer" aria-disabled="true"><span class="provider-mark uber" aria-hidden="true">U</span><span><strong>Uber</strong><small>Consultar preço na aplicação</small></span><span class="official-arrow" aria-hidden="true">↗</span></a>
+              <a id="openBolt" class="official-link" href="https://bolt.eu/pt-pt/" target="_blank" rel="noopener noreferrer" aria-disabled="true"><span class="provider-mark bolt" aria-hidden="true">B</span><span><strong>Bolt</strong><small>Consultar preço na aplicação</small></span><span class="official-arrow" aria-hidden="true">↗</span></a>
+              <a id="openMoovit" class="official-link" href="https://moovitapp.com/" target="_blank" rel="noopener noreferrer" aria-disabled="true"><span class="provider-mark moovit" aria-hidden="true">M</span><span><strong>Moovit</strong><small>Consultar percurso em transporte público</small></span><span class="official-arrow" aria-hidden="true">↗</span></a>
+            </div>
+            <div class="official-source-note" id="officialSourceStatus" aria-live="polite">Confirma as duas moradas para abrir as plataformas.</div>
+            <button id="copyRoute" type="button" class="quiet-button copy-route" disabled>Copiar partida e destino</button>
+          </section>
+
           <section class="panel offers-panel" aria-labelledby="offers-title">
-            <div class="section-header"><div><div class="section-kicker">02 / OFERTAS</div><h2 id="offers-title">Preços que estás a ver</h2><p class="section-description">Abre as aplicações e regista os valores apresentados agora.</p></div><button type="button" id="showQuoteForm" class="small-primary">+ Adicionar</button></div>
+            <div class="section-header"><div><div class="section-kicker">03 / OFERTAS</div><h2 id="offers-title">Preços que estás a ver</h2><p class="section-description">Regista o preço oficial que acabaste de consultar.</p></div><button type="button" id="showQuoteForm" class="small-primary">+ Adicionar</button></div>
             <div class="source-notice"><span aria-hidden="true">◎</span><span>Sem ligação aos preços em tempo real. Uma oferta só é considerada recente durante <strong>5 minutos</strong> após o registo.</span></div>
             <div id="offersList" class="offers-list" aria-live="polite"></div>
 
@@ -102,12 +114,12 @@
           </section>
 
           <section class="panel calc-panel" aria-labelledby="calc-title">
-            <div class="section-header"><div><div class="section-kicker">03 / CALCULADORA</div><h2 id="calc-title">Quanto vou gastar?</h2></div><span class="calc-icon" aria-hidden="true">€</span></div>
+            <div class="section-header"><div><div class="section-kicker">04 / CALCULADORA</div><h2 id="calc-title">Quanto vou gastar?</h2></div><span class="calc-icon" aria-hidden="true">€</span></div>
             <div id="routeSummary" class="route-summary">Escolhe primeiro um percurso.</div>
             <div class="distance-box">
               <div class="distance-head"><strong>Distância pela morada</strong><span class="mini-tag">Trajeto rodoviário</span></div>
               <div id="routeMeasure" class="distance-result" aria-live="polite">Confirma as moradas para calcular a distância e o tempo previstos.</div>
-              <button id="measureRoute" class="map-button full-button" type="button">Calcular percurso pelas moradas ↗</button>
+              <button id="measureRoute" class="map-button full-button" type="button">Atualizar distância e tempo ↻</button>
               <p class="field-help">Ao carregar, as moradas são enviadas ao <a href="https://www.mygeocode.com/terms/" target="_blank" rel="noopener noreferrer">My Geocode</a> para localizar os pontos, e as coordenadas ao serviço de demonstração <a href="https://github.com/Project-OSRM/osrm-backend/wiki/Demo-server" target="_blank" rel="noopener noreferrer">OSRM</a> para calcular o trajeto. Não há trânsito em tempo real. Confirma as localizações obtidas.</p>
             </div>
             <label for="ridesCount" class="ride-count-label">Quantas viagens deste tipo no mês?</label>
@@ -135,7 +147,7 @@
     <section id="screen-definicoes" class="screen secondary-screen" hidden aria-labelledby="settings-title">
       <div class="page-heading"><div class="eyebrow">PERSONALIZAR</div><h1 id="settings-title">Tudo <em>organizado.</em></h1><p>Os teus locais, os teus dados e as tuas cópias de segurança.</p></div>
       <div class="settings-grid"><section class="panel"><div class="section-header"><h2>Locais favoritos</h2><span class="mini-tag">Privados</span></div><p class="section-description">Guarda nomes como Casa ou Trabalho e usa-os nos percursos. Não é necessário indicar a tua morada completa.</p><form id="favoriteForm" class="favorite-form"><label>Nome<input name="label" maxlength="50" placeholder="Ex.: Trabalho" required></label><label>Local / morada<input name="address" maxlength="180" placeholder="Ex.: Sete Rios, Lisboa" required></label><button class="primary-button" type="submit">Adicionar favorito</button></form><div id="favoriteList" class="favorite-list"></div></section>
-        <section class="panel data-panel"><div class="section-header"><h2>Dados e cópias</h2><span class="mini-tag">v1.1.0</span></div><p>A informação fica neste navegador. Se limpares os dados do Safari ou mudares de dispositivo, podes perdê-la. Exporta regularmente uma cópia. Apenas quando pedes um cálculo de percurso são enviadas as duas moradas aos serviços externos identificados na calculadora.</p><div class="data-actions"><button type="button" id="exportJson" class="primary-button">Descarregar backup JSON ↓</button><label class="import-label">Importar backup <input id="importJson" type="file" accept="application/json,.json"></label><button type="button" id="clearData" class="danger-button">Apagar todos os meus dados</button></div><p class="tiny-disclaimer">Importar um backup substitui os registos atuais após confirmação. Não existe sincronização automática.</p></section></div>
+        <section class="panel data-panel"><div class="section-header"><h2>Dados e cópias</h2><span class="mini-tag">v1.2.0</span></div><p>A informação fica neste navegador. Se limpares os dados do Safari ou mudares de dispositivo, podes perdê-la. Exporta regularmente uma cópia. Quando confirmas um percurso, as moradas são consultadas nos serviços externos indicados na calculadora para obter a distância.</p><div class="data-actions"><button type="button" id="exportJson" class="primary-button">Descarregar backup JSON ↓</button><label class="import-label">Importar backup <input id="importJson" type="file" accept="application/json,.json"></label><button type="button" id="clearData" class="danger-button">Apagar todos os meus dados</button></div><p class="tiny-disclaimer">Importar um backup substitui os registos atuais após confirmação. Não existe sincronização automática.</p></section></div>
     </section>
   </main>
 

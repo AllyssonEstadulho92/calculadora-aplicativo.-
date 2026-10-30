@@ -1,4 +1,4 @@
-export const VERSION = '1.1.0';
+export const VERSION = '1.2.0';
 export const STORAGE_KEY = 'rota-conta:v1';
 export const QUOTE_FRESH_MINUTES = 5;
 

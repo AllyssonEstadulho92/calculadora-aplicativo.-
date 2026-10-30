@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.2.0, 30/10/2026
+
+- Confirmação de duas moradas passa a iniciar automaticamente o cálculo da distância e duração, com aviso de transmissão dos dados aos serviços de mapa.
+- Nova secção principal para abrir Uber, Bolt e Moovit nas fontes oficiais e copiar o percurso para a área de transferência.
+- Distinção explícita entre trajetos estimados e preços personalizados das plataformas, que continuam a depender das respetivas aplicações.
+- Tratamento de alteração do percurso durante uma consulta em curso sem gravar dados de rota anteriores.
+
 ## 1.1.0, 30/10/2026
 
 - Botão para calcular distância e duração de automóvel a partir das moradas confirmadas.

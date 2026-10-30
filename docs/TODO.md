@@ -21,5 +21,8 @@
 
 - [ ] Avaliar OCR privado no dispositivo, com revisão obrigatória de preços e descontos reconhecidos.
 - [x] Acrescentar consulta pontual de distância/duração via serviços externos, com aviso contextual e sem transformar em preços falsos.
+- [x] Tornar a consulta de distância automática na confirmação de moradas e facilitar acesso às plataformas oficiais sem inventar preços.
 - [ ] Avaliar substituição do servidor OSRM de demonstração por serviço de rotas com garantia de disponibilidade, se a aplicação crescer.
+- [ ] Obter documentação/autorização comercial de API de cotações para Uber e Bolt, caso seja realmente oferecida para comparação concorrencial; não prometer consulta de tarifas sem essa autorização.
+- [ ] Verificar se os operadores disponibilizam ligações profundas oficiais estáveis para preencher origem e destino sem colocar dados privados em URLs não autorizados.
 - [ ] Investigar integração oficial somente se os termos das plataformas autorizarem o caso de uso.

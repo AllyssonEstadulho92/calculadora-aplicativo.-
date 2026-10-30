@@ -2,11 +2,11 @@
 
 ## Componentes
 
-- `index.html`: ecrãs Comparar, Viagens, Relatórios, Definições e formulário modal.
+- `index.html`: ecrãs Comparar, Viagens, Relatórios, Definições, fontes oficiais de consulta e formulário modal.
 - `styles.css`: design responsivo mobile-first, estados, contraste e foco.
 - `src/core.mjs`: cálculos puros em cêntimos, frescura, comparação, contabilidade mensal e validação das importações.
 - `src/routing.mjs`: localização das moradas via My Geocode, percurso rodoviário por OSRM, validação, tempo limite, cache de sessão e erros legíveis.
-- `src/app.mjs`: eventos da interface, renderização segura, formulários, persistência e exportação/importação.
+- `src/app.mjs`: eventos da interface, consulta automática de percurso após confirmação, links externos, cópia de moradas, renderização segura, formulários, persistência e exportação/importação.
 - `sw.js`: cache do shell offline, sem dados pessoais, por versão.
 - `manifest.webmanifest` e `assets/`: instalação progressiva e ícones.
 - `tests/core.test.mjs` e `tests/routing.test.mjs`: testes das regras críticas e respostas simuladas dos serviços de mapa.
@@ -23,6 +23,8 @@ As ofertas não são despesas. Cada `quote` tem origem, destino, preço mínimo/
 - Escapam-se valores introduzidos antes de os incluir em HTML gerado; URLs externas usam `URLSearchParams`.
 - CSP restringe scripts e imagens ao próprio domínio, exceto pré-visualização local `blob:`; apenas `connect-src` autoriza pedidos HTTPS a `api.mygeocode.com` e `router.project-osrm.org` após clique explícito.
 - O geocodificador recebe texto das duas moradas; o motor de percurso recebe coordenadas. A localização pode não corresponder ao número de porta e é apresentada ao utilizador para confirmação. O motor de rota de demonstração não inclui trânsito em tempo real nem oferece SLA.
+- A consulta da rota passa a ser desencadeada pelo envio do formulário de moradas, com aviso contextual antes da ação. Uma nova rota confirmada enquanto a anterior ainda está a consultar fica em fila e não reutiliza o resultado desatualizado.
+- Os links para Uber, Bolt e Moovit abrem apenas os endereços oficiais genéricos, sem envio implícito das moradas. A cópia para a área de transferência depende de gesto explícito do utilizador. Estes links não fornecem cotações.
 - Importação JSON sujeita a limites de tamanho, estrutura, quantidade e tipos. CSV com prevenção de execução de fórmulas em folhas de cálculo.
 - O repositório é público, não há moradas reais, recibos nem fotografias pessoais integrados no código.
 - `localStorage` não é encriptado; não guardar dados bancários ou moradas desnecessárias. Não há sincronização.
