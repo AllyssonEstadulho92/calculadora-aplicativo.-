@@ -1,0 +1,142 @@
+<!doctype html>
+<html lang="pt-PT">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#142624">
+  <meta name="description" content="Compara ofertas Uber e Bolt que viste nas aplicações e acompanha o custo real das tuas viagens.">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' blob: data:; script-src 'self'; style-src 'self'; connect-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self';">
+  <link rel="manifest" href="./manifest.webmanifest">
+  <link rel="icon" type="image/svg+xml" href="./assets/icon.svg">
+  <link rel="apple-touch-icon" href="./assets/icon-192.png">
+  <link rel="stylesheet" href="./styles.css">
+  <title>Rota & Conta | A tua viagem, bem calculada</title>
+  <script type="module" src="./src/app.mjs"></script>
+</head>
+<body>
+  <header class="topbar">
+    <div class="topbar-inner">
+      <a class="brand" href="#comparar" aria-label="Rota e Conta, início">
+        <span class="brand-icon" aria-hidden="true"><svg viewBox="0 0 32 32" fill="none"><path d="M7 8a3 3 0 1 0 0-.01ZM25 24a3 3 0 1 0 0-.01Z" stroke="currentColor" stroke-width="2.8"/><path d="M8.5 11c4 0 4 10 9 10h3.5" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-dasharray="4 4"/></svg></span>
+        <span>rota<span class="brand-accent">&</span>conta<span class="brand-dot">.</span></span>
+      </a>
+      <nav class="desktop-nav" aria-label="Navegação principal">
+        <button class="nav-link active" data-view="comparar" type="button">Comparar</button>
+        <button class="nav-link" data-view="viagens" type="button">Viagens</button>
+        <button class="nav-link" data-view="relatorios" type="button">Relatórios</button>
+        <button class="nav-link" data-view="definicoes" type="button">Definições</button>
+      </nav>
+      <div class="topbar-meta"><span class="status-light"></span> Os teus dados, no teu dispositivo <span class="version">v1.0.0</span></div>
+    </div>
+  </header>
+
+  <main class="main-content">
+    <section id="screen-comparar" class="screen" aria-labelledby="page-title">
+      <div class="hero">
+        <div>
+          <div class="eyebrow"><span class="eyebrow-dot"></span> MOBILIDADE + FINANÇAS</div>
+          <h1 id="page-title">A melhor viagem é a <em>bem escolhida.</em></h1>
+          <p class="hero-text">Compara o que a Uber e a Bolt te estão a mostrar. Decide com calma, controla o valor que gastas.</p>
+        </div>
+        <div class="hero-stat"><span class="stat-label">Gasto neste mês</span><strong id="heroMonthTotal">0,00 €</strong><span id="heroMonthNote">Viagens pagas e registadas</span><button type="button" class="text-action light" data-view="relatorios">Ver relatório <span aria-hidden="true">↗</span></button></div>
+      </div>
+
+      <div class="compare-grid">
+        <div class="main-column">
+          <section class="panel route-panel" aria-labelledby="route-title">
+            <div class="section-header"><div><div class="section-kicker">01 / PERCURSO</div><h2 id="route-title">Para onde vamos?</h2></div><span class="mini-tag">A tua rota</span></div>
+            <form id="routeForm" novalidate>
+              <div class="route-inputs">
+                <div class="route-markers" aria-hidden="true"><span class="origin-marker"></span><span class="marker-line"></span><span class="destination-marker"></span></div>
+                <div class="route-fields">
+                  <label for="routeFrom">Local de partida</label>
+                  <input id="routeFrom" name="from" type="text" maxlength="180" placeholder="Ex.: Benfica, Lisboa" autocomplete="street-address" required>
+                  <div class="field-separator"></div>
+                  <label for="routeTo">Destino</label>
+                  <input id="routeTo" name="to" type="text" maxlength="180" placeholder="Ex.: Av. José Malhoa, Lisboa" required>
+                </div>
+                <button type="button" id="swapRoute" class="swap-button" aria-label="Trocar partida e destino" title="Trocar partida e destino">⇅</button>
+              </div>
+              <div id="favoriteChips" class="favorite-chips" aria-label="Locais favoritos"></div>
+              <div class="route-actions"><button type="button" id="laterToggle" class="quiet-button"><span aria-hidden="true">◷</span> Mais tarde</button><button type="submit" class="primary-button">Confirmar percurso <span aria-hidden="true">→</span></button></div>
+              <label class="later-field" id="laterField" hidden for="routeLater">Data e hora planeadas <span class="field-help">Não reserva nem consulta preços futuros</span><input id="routeLater" type="datetime-local"></label>
+            </form>
+          </section>
+
+          <section class="panel offers-panel" aria-labelledby="offers-title">
+            <div class="section-header"><div><div class="section-kicker">02 / OFERTAS</div><h2 id="offers-title">Preços que estás a ver</h2><p class="section-description">Abre as aplicações e regista os valores apresentados agora.</p></div><button type="button" id="showQuoteForm" class="small-primary">+ Adicionar</button></div>
+            <div class="source-notice"><span aria-hidden="true">◎</span><span>Sem ligação aos preços em tempo real. Uma oferta só é considerada recente durante <strong>5 minutos</strong> após o registo.</span></div>
+            <div id="offersList" class="offers-list" aria-live="polite"></div>
+
+            <form id="quoteForm" class="quote-form" hidden novalidate>
+              <div class="form-title-row"><h3>Nova oferta</h3><button type="button" id="cancelQuote" class="icon-close" aria-label="Fechar formulário">×</button></div>
+              <div class="form-grid">
+                <label>Aplicação<select id="quoteProvider" name="provider" required><option value="Uber">Uber</option><option value="Bolt">Bolt</option></select></label>
+                <label>Categoria<input id="quoteCategory" name="category" type="text" maxlength="60" placeholder="Ex.: UberX, Comfort, Bolt" required></label>
+                <label>Preço apresentado (€)<input name="low" inputmode="decimal" placeholder="3,74" required></label>
+                <label>Preço máximo, se for intervalo (€)<input name="high" inputmode="decimal" placeholder="Opcional"></label>
+                <label>Preço anterior mínimo (€)<input name="original" inputmode="decimal" placeholder="Opcional"></label>
+                <label>Preço anterior máximo (€)<input name="originalHigh" inputmode="decimal" placeholder="Se era intervalo"></label>
+                <label>Espera até recolha (min)<input name="wait" type="number" min="0" max="999" step="1" placeholder="Ex.: 4"></label>
+                <label>Duração da viagem (min)<input name="duration" type="number" min="0" max="999" step="1" placeholder="Opcional"></label>
+                <label>Lugares disponíveis<input name="seats" type="number" min="1" max="8" step="1" placeholder="Opcional"></label>
+              </div>
+              <label class="file-drop"> <span aria-hidden="true">▧</span> Consultar uma captura de ecrã (opcional)<input id="quoteScreenshot" type="file" accept="image/png,image/jpeg,image/webp,image/heic,image/heif"></label>
+              <div class="photo-preview" id="photoPreview" hidden><img id="photoImage" alt="Captura escolhida para consultar os valores"><p>Consulta a imagem e introduz os valores manualmente. A fotografia não fica guardada nem é enviada.</p></div>
+              <p class="field-help">Escreve o preço final já com o desconto. Quando a aplicação indicar um intervalo, preenche também o máximo.</p>
+              <p id="quoteError" class="form-error" role="alert" hidden></p>
+              <button type="submit" class="primary-button full-button">Guardar oferta e comparar <span aria-hidden="true">→</span></button>
+            </form>
+          </section>
+        </div>
+
+        <aside class="side-column" aria-label="Recomendação e cálculo">
+          <section class="recommend-card" aria-labelledby="recommend-title">
+            <div class="recommend-overline"><span class="sparkle" aria-hidden="true">✳</span> SUGESTÃO COM BASE NAS OFERTAS <span class="live-chip" id="recommendStatus">○ SEM PREÇOS</span></div>
+            <h2 id="recommend-title">Qual compensa?</h2>
+            <div class="preference-select"><span>Quero</span><select id="preferenceMode" aria-label="Critério de recomendação"><option value="price">poupar dinheiro</option><option value="time">esperar menos</option></select></div>
+            <div id="recommendResult" aria-live="polite"><p>Adiciona as ofertas que encontraste para veres a sugestão.</p></div>
+            <div class="recommend-foot">A decisão baseia-se apenas nos valores que introduziste. Confirma o preço na app antes de pedir.</div>
+          </section>
+
+          <section class="panel calc-panel" aria-labelledby="calc-title">
+            <div class="section-header"><div><div class="section-kicker">03 / CALCULADORA</div><h2 id="calc-title">Quanto vou gastar?</h2></div><span class="calc-icon" aria-hidden="true">€</span></div>
+            <div id="routeSummary" class="route-summary">Escolhe primeiro um percurso.</div>
+            <label for="ridesCount" class="ride-count-label">Quantas viagens deste tipo no mês?</label>
+            <div class="stepper"><button type="button" id="lessRides" aria-label="Menos uma viagem">−</button><input id="ridesCount" type="number" min="1" max="120" step="1" value="20"><button type="button" id="moreRides" aria-label="Mais uma viagem">+</button></div>
+            <div id="costResult" class="cost-result" aria-live="polite"><span>Preenche as ofertas para calcular.</span></div>
+            <div class="calc-actions"><button id="calculateButton" class="primary-button full-button" type="button">Calcular custo da rota <span aria-hidden="true">→</span></button><a id="mapLink" href="https://www.google.com/maps" target="_blank" rel="noopener noreferrer" class="map-button" aria-disabled="true">Ver trajeto no Google Maps ↗</a></div>
+            <p class="tiny-disclaimer">A multiplicação é exata. O preço das próximas viagens pode mudar.</p>
+          </section>
+        </aside>
+      </div>
+    </section>
+
+    <section id="screen-viagens" class="screen secondary-screen" hidden aria-labelledby="trips-title">
+      <div class="page-heading"><div class="eyebrow">HISTÓRICO</div><h1 id="trips-title">As tuas <em>viagens.</em></h1><p>Registos planeados e pagos, separados para não confundir previsão com despesa real.</p></div>
+      <div class="panel"><div class="section-header"><h2>Registos</h2><span class="mini-tag" id="tripCount">0 viagens</span></div><div id="tripsList" class="trips-list"></div></div>
+    </section>
+
+    <section id="screen-relatorios" class="screen secondary-screen" hidden aria-labelledby="reports-title">
+      <div class="page-heading"><div class="eyebrow">CONTROLO FINANCEIRO</div><h1 id="reports-title">Cada euro <em>conta.</em></h1><p>Um retrato fiel das despesas realmente pagas.</p></div>
+      <div class="reports-toolbar"><label>Mês de análise<input id="reportMonth" type="month"></label><form id="budgetForm"><label>Orçamento mensal (€)<input id="budgetInput" inputmode="decimal" placeholder="Ex.: 100,00"></label><button type="submit" class="small-primary">Guardar limite</button></form></div>
+      <div class="report-metrics"><article class="metric-card dark"><span>Total pago</span><strong id="reportTotal">0,00 €</strong><small id="reportCount">0 viagens pagas</small></article><article class="metric-card"><span>Orçamento disponível</span><strong id="reportRemaining">0,00 €</strong><small id="reportBudgetStatus">Define um orçamento</small></article><article class="metric-card"><span>Custo médio por viagem</span><strong id="reportAverage">0,00 €</strong><small>Com base nas viagens pagas</small></article></div>
+      <div class="panel report-breakdown"><div class="section-header"><h2>Onde foi gasto</h2><button type="button" id="exportCsv" class="quiet-button">Exportar CSV ↓</button></div><div id="providerBreakdown"></div><div class="budget-progress"><div class="progress-copy"><span>Utilização do orçamento</span><strong id="budgetPercent">0%</strong></div><progress id="budgetProgress" max="100" value="0">0%</progress></div></div>
+    </section>
+
+    <section id="screen-definicoes" class="screen secondary-screen" hidden aria-labelledby="settings-title">
+      <div class="page-heading"><div class="eyebrow">PERSONALIZAR</div><h1 id="settings-title">Tudo <em>organizado.</em></h1><p>Os teus locais, os teus dados e as tuas cópias de segurança.</p></div>
+      <div class="settings-grid"><section class="panel"><div class="section-header"><h2>Locais favoritos</h2><span class="mini-tag">Privados</span></div><p class="section-description">Guarda nomes como Casa ou Trabalho e usa-os nos percursos. Não é necessário indicar a tua morada completa.</p><form id="favoriteForm" class="favorite-form"><label>Nome<input name="label" maxlength="50" placeholder="Ex.: Trabalho" required></label><label>Local / morada<input name="address" maxlength="180" placeholder="Ex.: Sete Rios, Lisboa" required></label><button class="primary-button" type="submit">Adicionar favorito</button></form><div id="favoriteList" class="favorite-list"></div></section>
+        <section class="panel data-panel"><div class="section-header"><h2>Dados e cópias</h2><span class="mini-tag">v1.0.0</span></div><p>A informação fica neste navegador. Se limpares os dados do Safari ou mudares de dispositivo, podes perdê-la. Exporta regularmente uma cópia.</p><div class="data-actions"><button type="button" id="exportJson" class="primary-button">Descarregar backup JSON ↓</button><label class="import-label">Importar backup <input id="importJson" type="file" accept="application/json,.json"></label><button type="button" id="clearData" class="danger-button">Apagar todos os meus dados</button></div><p class="tiny-disclaimer">Importar um backup substitui os registos atuais após confirmação. Não existe sincronização automática.</p></section></div>
+    </section>
+  </main>
+
+  <nav class="mobile-nav" aria-label="Navegação inferior"><button type="button" data-view="comparar" class="active"><span aria-hidden="true">⌁</span>Comparar</button><button type="button" data-view="viagens"><span aria-hidden="true">▣</span>Viagens</button><button type="button" data-view="relatorios"><span aria-hidden="true">◫</span>Relatórios</button><button type="button" data-view="definicoes"><span aria-hidden="true">⚙</span>Definições</button></nav>
+
+  <dialog id="tripDialog" aria-labelledby="tripDialogTitle"><form id="tripForm" novalidate><div class="dialog-head"><div><div class="section-kicker">REGISTO FINANCEIRO</div><h2 id="tripDialogTitle">Guardar viagem</h2><p id="tripSource"></p></div><button type="button" id="closeTripDialog" aria-label="Fechar" class="icon-close">×</button></div><input type="hidden" name="tripId"><input type="hidden" name="quoteId"><div class="form-grid"><label>Estado<select name="status" id="tripStatus"><option value="paid">Concluída e paga</option><option value="planned">Planeada, ainda não paga</option></select></label><label>Data da viagem<input name="date" type="date" required></label><label id="actualPriceLabel">Valor final pago (€)<input name="amount" inputmode="decimal" placeholder="Ex.: 3,74"></label><label>Método de pagamento<select name="payment"><option>Cartão</option><option>Dinheiro</option><option>Outro</option></select></label><label class="wide-field">Observações (opcional)<input name="notes" maxlength="240" placeholder="Ex.: desconto aplicado"></label></div><p class="field-help">Só o valor final que pagaste entra nas contas. Não uses a estimativa como pagamento automático.</p><p class="form-error" id="tripError" role="alert" hidden></p><button type="submit" class="primary-button full-button">Guardar registo</button></form></dialog>
+  <div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
+  <footer class="footer">Rota & Conta <span>·</span> Calcula com dados teus, decide com informação clara. <span>·</span> Projeto pessoal, independente da Uber e da Bolt.</footer>
+</body>
+</html>
