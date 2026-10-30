@@ -1,4 +1,5 @@
 import { VERSION, STORAGE_KEY, createEmptyState, sanitizeState, parseMoney, moneyInput, euros, routeKey, isFresh, compareQuotes, calculateRouteCost, monthReport, escapeCSV } from './core.mjs';
+import { lookupDrivingRoute, routeErrorMessage } from './routing.mjs';
 
 const $ = id => document.getElementById(id);
 const esc = value => String(value ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
@@ -21,6 +22,7 @@ let currentView = 'comparar';
 let toastTimer;
 let imageURL = null;
 let activeDialogContext = null;
+let measureLoading = false;
 
 function notify(message) {
   const node = $('toast'); node.textContent = message; node.hidden = false;
@@ -58,6 +60,8 @@ function renderRoute() {
   $('laterField').hidden = !state.route.later;
   $('laterToggle').setAttribute('aria-expanded', String(!$('laterField').hidden));
   const isReady = state.route.from && state.route.to;
+  $('measureRoute').disabled = !isReady || measureLoading;
+  $('measureRoute').textContent = measureLoading ? 'A calcular o percurso…' : 'Calcular percurso pelas moradas ↗';
   const route = $('routeSummary');
   route.innerHTML = isReady ? `<span aria-hidden="true">◉</span><div><strong>${esc(state.route.from)}</strong> <span class="arrow">→</span> <strong>${esc(state.route.to)}</strong>${isLaterRoute() ? `<small> · Viagem futura: ${esc(new Date(state.route.later).toLocaleString('pt-PT', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' }))}</small>` : ''}</div>` : 'Escolhe primeiro um percurso.';
   const mapLink = $('mapLink');
@@ -66,6 +70,12 @@ function renderRoute() {
     const p = new URLSearchParams({ api: '1', origin: state.route.from, destination: state.route.to, travelmode: 'driving' });
     mapLink.href = `https://www.google.com/maps/dir/?${p.toString()}`;
   } else mapLink.href = 'https://www.google.com/maps';
+  const measure = state.route.measure;
+  $('routeMeasure').innerHTML = !isReady ? 'Confirma as moradas para consultar o percurso.' : !measure ? 'Consulta os quilómetros e a duração estimada para esta rota.' :
+    `<div class="distance-metrics"><strong>${(measure.distanceMeters / 1000).toLocaleString('pt-PT', { maximumFractionDigits: 1, minimumFractionDigits: 1 })} km</strong><strong>${Math.max(1, Math.round(measure.durationSeconds / 60))} min</strong></div>
+    <div class="distance-locations"><span>Partida encontrada: ${esc(measure.fromLabel)}</span><span>Destino encontrado: ${esc(measure.toLabel)}</span></div>
+    ${measure.uncertain ? '<p class="distance-warning">⚠ Uma das moradas foi localizada de forma aproximada. Confirma a rua e o número.</p>' : ''}
+    <small>Distância rodoviária estimada, sem trânsito em tempo real. Consulta: ${esc(new Date(measure.at).toLocaleString('pt-PT', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' }))}.</small>`;
 }
 
 function renderFavoriteChips() {
@@ -110,7 +120,9 @@ function renderCosts() {
   if (!selected) { target.innerHTML = isLaterRoute() ? '<span>Sem preço confirmado para a hora futura. Podes registar os preços quando estiveres pronto para viajar.</span>' : '<span>Adiciona uma oferta recente para calcular o custo do percurso.</span>'; return; }
   if (!values) { target.innerHTML = '<span>Introduz um número inteiro entre 1 e 120 viagens.</span>'; return; }
   const range = selected.lowCents !== selected.highCents;
-  target.innerHTML = `<div class="cost-label">${count} ${count === 1 ? 'viagem' : 'viagens'} ao preço indicado</div><strong>${range ? `${euros(values.monthMin)} a ${euros(values.monthMax)}` : euros(values.monthMin)}</strong><small>Uma viagem: ${range ? `${euros(values.oneWayMin)} a ${euros(values.oneWayMax)}` : euros(values.oneWayMin)} · ${esc(selected.provider)}</small>`;
+  const distance = state.route.measure?.distanceMeters;
+  const perKm = distance ? `<small>Custo equivalente por km neste preço: ${range ? `${euros(Math.round(values.oneWayMin * 1000 / distance))} a ${euros(Math.round(values.oneWayMax * 1000 / distance))}` : euros(Math.round(values.oneWayMin * 1000 / distance))}/km. Não é a tarifa por km da plataforma.</small>` : '';
+  target.innerHTML = `<div class="cost-label">${count} ${count === 1 ? 'viagem' : 'viagens'} ao preço indicado</div><strong>${range ? `${euros(values.monthMin)} a ${euros(values.monthMax)}` : euros(values.monthMin)}</strong><small>Uma viagem: ${range ? `${euros(values.oneWayMin)} a ${euros(values.oneWayMax)}` : euros(values.oneWayMin)} · ${esc(selected.provider)}</small>${perKm}`;
 }
 
 function renderTrips() {
@@ -143,8 +155,24 @@ $('routeForm').addEventListener('submit', event => {
   if (!from || !to) { notify('Preenche a partida e o destino.'); return; }
   if (routeKey(from, to) === routeKey(to, from)) { notify('A partida e o destino têm de ser diferentes.'); return; }
   if (!$('laterField').hidden && (!$('routeLater').value || Date.parse($('routeLater').value) <= Date.now())) { notify('Escolhe uma data e hora futuras para “Mais tarde”.'); return; }
-  state.route = { from, to, later: $('laterField').hidden ? '' : $('routeLater').value };
+  const existingMeasure = routeKey(from, to) === routeKey(state.route.from, state.route.to) ? state.route.measure : null;
+  state.route = { from, to, later: $('laterField').hidden ? '' : $('routeLater').value, measure: existingMeasure };
   persist(); render(); notify('Percurso confirmado. Agora adiciona os preços que estás a ver.');
+});
+
+$('measureRoute').addEventListener('click', async () => {
+  if (measureLoading || !state.route.from || !state.route.to) return;
+  const from = state.route.from, to = state.route.to;
+  const key = routeKey(from, to);
+  measureLoading = true; renderRoute();
+  try {
+    const measure = await lookupDrivingRoute(from, to);
+    if (key !== routeKey(state.route.from, state.route.to)) { notify('O percurso foi alterado. Volta a calcular para as novas moradas.'); return; }
+    state.route.measure = measure;
+    persist(); renderCosts();
+    notify('Trajeto estimado. Confirma os pontos encontrados e o preço nas aplicações.');
+  } catch (error) { notify(routeErrorMessage(error)); }
+  finally { measureLoading = false; renderRoute(); }
 });
 
 $('swapRoute').addEventListener('click', () => { const first = $('routeFrom').value; $('routeFrom').value = $('routeTo').value; $('routeTo').value = first; });

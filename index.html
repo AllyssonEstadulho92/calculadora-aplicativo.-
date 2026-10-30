@@ -4,10 +4,10 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="theme-color" content="#142624">
-  <meta name="description" content="Compara ofertas Uber e Bolt que viste nas aplicações e acompanha o custo real das tuas viagens.">
+  <meta name="description" content="Consulta a distância do percurso por morada, compara ofertas Uber e Bolt e acompanha os custos reais das tuas viagens.">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' blob: data:; script-src 'self'; style-src 'self'; connect-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self';">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' blob: data:; script-src 'self'; style-src 'self'; connect-src 'self' https://api.mygeocode.com https://router.project-osrm.org; object-src 'none'; base-uri 'self'; form-action 'self';">
   <link rel="manifest" href="./manifest.webmanifest">
   <link rel="icon" type="image/svg+xml" href="./assets/icon.svg">
   <link rel="apple-touch-icon" href="./assets/icon-192.png">
@@ -28,7 +28,7 @@
         <button class="nav-link" data-view="relatorios" type="button">Relatórios</button>
         <button class="nav-link" data-view="definicoes" type="button">Definições</button>
       </nav>
-      <div class="topbar-meta"><span class="status-light"></span> Os teus dados, no teu dispositivo <span class="version">v1.0.0</span></div>
+      <div class="topbar-meta"><span class="status-light"></span> Os teus dados, no teu dispositivo <span class="version">v1.1.0</span></div>
     </div>
   </header>
 
@@ -52,10 +52,10 @@
                 <div class="route-markers" aria-hidden="true"><span class="origin-marker"></span><span class="marker-line"></span><span class="destination-marker"></span></div>
                 <div class="route-fields">
                   <label for="routeFrom">Local de partida</label>
-                  <input id="routeFrom" name="from" type="text" maxlength="180" placeholder="Ex.: Benfica, Lisboa" autocomplete="street-address" required>
+                  <input id="routeFrom" name="from" type="text" maxlength="180" placeholder="Ex.: Rua e número, Lisboa" autocomplete="street-address" required>
                   <div class="field-separator"></div>
                   <label for="routeTo">Destino</label>
-                  <input id="routeTo" name="to" type="text" maxlength="180" placeholder="Ex.: Av. José Malhoa, Lisboa" required>
+                  <input id="routeTo" name="to" type="text" maxlength="180" placeholder="Ex.: Av. José Malhoa 27, Lisboa" required>
                 </div>
                 <button type="button" id="swapRoute" class="swap-button" aria-label="Trocar partida e destino" title="Trocar partida e destino">⇅</button>
               </div>
@@ -104,11 +104,17 @@
           <section class="panel calc-panel" aria-labelledby="calc-title">
             <div class="section-header"><div><div class="section-kicker">03 / CALCULADORA</div><h2 id="calc-title">Quanto vou gastar?</h2></div><span class="calc-icon" aria-hidden="true">€</span></div>
             <div id="routeSummary" class="route-summary">Escolhe primeiro um percurso.</div>
+            <div class="distance-box">
+              <div class="distance-head"><strong>Distância pela morada</strong><span class="mini-tag">Trajeto rodoviário</span></div>
+              <div id="routeMeasure" class="distance-result" aria-live="polite">Confirma as moradas para calcular a distância e o tempo previstos.</div>
+              <button id="measureRoute" class="map-button full-button" type="button">Calcular percurso pelas moradas ↗</button>
+              <p class="field-help">Ao carregar, as moradas são enviadas ao <a href="https://www.mygeocode.com/terms/" target="_blank" rel="noopener noreferrer">My Geocode</a> para localizar os pontos, e as coordenadas ao serviço de demonstração <a href="https://github.com/Project-OSRM/osrm-backend/wiki/Demo-server" target="_blank" rel="noopener noreferrer">OSRM</a> para calcular o trajeto. Não há trânsito em tempo real. Confirma as localizações obtidas.</p>
+            </div>
             <label for="ridesCount" class="ride-count-label">Quantas viagens deste tipo no mês?</label>
             <div class="stepper"><button type="button" id="lessRides" aria-label="Menos uma viagem">−</button><input id="ridesCount" type="number" min="1" max="120" step="1" value="20"><button type="button" id="moreRides" aria-label="Mais uma viagem">+</button></div>
             <div id="costResult" class="cost-result" aria-live="polite"><span>Preenche as ofertas para calcular.</span></div>
             <div class="calc-actions"><button id="calculateButton" class="primary-button full-button" type="button">Calcular custo da rota <span aria-hidden="true">→</span></button><a id="mapLink" href="https://www.google.com/maps" target="_blank" rel="noopener noreferrer" class="map-button" aria-disabled="true">Ver trajeto no Google Maps ↗</a></div>
-            <p class="tiny-disclaimer">A multiplicação é exata. O preço das próximas viagens pode mudar.</p>
+            <p class="tiny-disclaimer">A multiplicação dos preços registados é exata. A rota é aproximada e não permite deduzir uma tarifa Uber ou Bolt. O valor final tem de ser confirmado na respetiva app.</p>
           </section>
         </aside>
       </div>
@@ -129,7 +135,7 @@
     <section id="screen-definicoes" class="screen secondary-screen" hidden aria-labelledby="settings-title">
       <div class="page-heading"><div class="eyebrow">PERSONALIZAR</div><h1 id="settings-title">Tudo <em>organizado.</em></h1><p>Os teus locais, os teus dados e as tuas cópias de segurança.</p></div>
       <div class="settings-grid"><section class="panel"><div class="section-header"><h2>Locais favoritos</h2><span class="mini-tag">Privados</span></div><p class="section-description">Guarda nomes como Casa ou Trabalho e usa-os nos percursos. Não é necessário indicar a tua morada completa.</p><form id="favoriteForm" class="favorite-form"><label>Nome<input name="label" maxlength="50" placeholder="Ex.: Trabalho" required></label><label>Local / morada<input name="address" maxlength="180" placeholder="Ex.: Sete Rios, Lisboa" required></label><button class="primary-button" type="submit">Adicionar favorito</button></form><div id="favoriteList" class="favorite-list"></div></section>
-        <section class="panel data-panel"><div class="section-header"><h2>Dados e cópias</h2><span class="mini-tag">v1.0.0</span></div><p>A informação fica neste navegador. Se limpares os dados do Safari ou mudares de dispositivo, podes perdê-la. Exporta regularmente uma cópia.</p><div class="data-actions"><button type="button" id="exportJson" class="primary-button">Descarregar backup JSON ↓</button><label class="import-label">Importar backup <input id="importJson" type="file" accept="application/json,.json"></label><button type="button" id="clearData" class="danger-button">Apagar todos os meus dados</button></div><p class="tiny-disclaimer">Importar um backup substitui os registos atuais após confirmação. Não existe sincronização automática.</p></section></div>
+        <section class="panel data-panel"><div class="section-header"><h2>Dados e cópias</h2><span class="mini-tag">v1.1.0</span></div><p>A informação fica neste navegador. Se limpares os dados do Safari ou mudares de dispositivo, podes perdê-la. Exporta regularmente uma cópia. Apenas quando pedes um cálculo de percurso são enviadas as duas moradas aos serviços externos identificados na calculadora.</p><div class="data-actions"><button type="button" id="exportJson" class="primary-button">Descarregar backup JSON ↓</button><label class="import-label">Importar backup <input id="importJson" type="file" accept="application/json,.json"></label><button type="button" id="clearData" class="danger-button">Apagar todos os meus dados</button></div><p class="tiny-disclaimer">Importar um backup substitui os registos atuais após confirmação. Não existe sincronização automática.</p></section></div>
     </section>
   </main>
 

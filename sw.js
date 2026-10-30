@@ -1,5 +1,5 @@
-const CACHE = 'rota-conta-shell-v1.0.0';
-const ASSETS = ['./', './index.html', './styles.css', './src/app.mjs', './src/core.mjs', './manifest.webmanifest', './assets/icon.svg', './assets/icon-192.png', './assets/icon-512.png'];
+const CACHE = 'rota-conta-shell-v1.1.0';
+const ASSETS = ['./', './index.html', './styles.css', './src/app.mjs', './src/core.mjs', './src/routing.mjs', './manifest.webmanifest', './assets/icon.svg', './assets/icon-192.png', './assets/icon-512.png'];
 self.addEventListener('install', event => {
   event.waitUntil(caches.open(CACHE).then(cache => cache.addAll(ASSETS)).then(() => self.skipWaiting()));
 });

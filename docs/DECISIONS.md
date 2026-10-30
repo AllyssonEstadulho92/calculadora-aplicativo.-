@@ -10,3 +10,6 @@
 | 2026-10-30 | Só viagem paga conta em despesas | Separar previsão financeira de saída real de dinheiro. |
 | 2026-10-30 | Armazenamento local + backup manual | Evitar infraestrutura e recolha de dados pessoais nesta versão. Exige aviso explícito de risco de perda. |
 | 2026-10-30 | Captura apenas para consulta visual | OCR automático sem validação poderia inventar/interpretar mal preços e descontos. |
+| 2026-10-30 | Rota rodoviária por My Geocode + OSRM mediante clique | Permitir consultar quilómetros e tempo com base nas moradas sem chaves secretas em código público. O geocodificador autoriza uso pessoal sem chave; OSRM é demonstração não comercial e sem garantia de disponibilidade. A integração é substituível. |
+| 2026-10-30 | Mostrar confiança e etiquetas da localização | Números de porta podem não ser identificados exatamente; o utilizador confirma a correspondência. Não confundir distância estimada com tarifa da Uber/Bolt. |
+| 2026-10-30 | Manter esquema de backup v1 com `route.measure` opcional | Preservar histórico anterior e atualizar a medição sem migração destrutiva. |

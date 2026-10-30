@@ -1,4 +1,4 @@
-export const VERSION = '1.0.0';
+export const VERSION = '1.1.0';
 export const STORAGE_KEY = 'rota-conta:v1';
 export const QUOTE_FRESH_MINUTES = 5;
 
@@ -74,7 +74,7 @@ export function monthReport(trips, month, budgetCents = 0) {
 }
 
 export function createEmptyState() {
-  return { schemaVersion: 1, route: { from: '', to: '', later: '' }, quotes: [], trips: [], favorites: [], budgetCents: 0, mode: 'price' };
+  return { schemaVersion: 1, route: { from: '', to: '', later: '', measure: null }, quotes: [], trips: [], favorites: [], budgetCents: 0, mode: 'price' };
 }
 
 const cleanText = (value, max = 180) => typeof value === 'string' ? value.trim().slice(0, max) : '';
@@ -98,7 +98,14 @@ export function sanitizeState(raw) {
     return { id: cleanText(t.id, 90), provider: t.provider, category: cleanText(t.category, 60), from: cleanText(t.from), to: cleanText(t.to), date: t.date, status: t.status, amountCents: t.status === 'paid' ? t.amountCents : null, quotedCents: validCents(t.quotedCents) ? t.quotedCents : null, payment: ['Cartão', 'Dinheiro', 'Outro'].includes(t.payment) ? t.payment : 'Outro', notes: cleanText(t.notes, 240) };
   });
   const favorites = raw.favorites.map(f => ({ id: cleanText(f?.id, 90), label: cleanText(f?.label, 50), address: cleanText(f?.address) })).filter(f => f.label && f.address);
-  return { schemaVersion: 1, route: { from: cleanText(route.from), to: cleanText(route.to), later: cleanText(route.later, 30) }, quotes, trips, favorites, budgetCents: validCents(raw.budgetCents) ? raw.budgetCents : 0, mode: raw.mode === 'time' ? 'time' : 'price' };
+  const measure = route.measure &&
+    Number.isInteger(route.measure.distanceMeters) && route.measure.distanceMeters > 0 && route.measure.distanceMeters < 2_000_000 &&
+    Number.isInteger(route.measure.durationSeconds) && route.measure.durationSeconds > 0 && route.measure.durationSeconds < 604_800 &&
+    validDate(route.measure.at)
+    ? { distanceMeters: route.measure.distanceMeters, durationSeconds: route.measure.durationSeconds,
+      fromLabel: cleanText(route.measure.fromLabel), toLabel: cleanText(route.measure.toLabel),
+      uncertain: route.measure.uncertain === true, at: route.measure.at } : null;
+  return { schemaVersion: 1, route: { from: cleanText(route.from), to: cleanText(route.to), later: cleanText(route.later, 30), measure }, quotes, trips, favorites, budgetCents: validCents(raw.budgetCents) ? raw.budgetCents : 0, mode: raw.mode === 'time' ? 'time' : 'price' };
 }
 
 export function escapeCSV(value) {

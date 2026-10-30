@@ -1,5 +1,14 @@
 # Changelog
 
+## 1.1.0, 30/10/2026
+
+- Botão para calcular distância e duração de automóvel a partir das moradas confirmadas.
+- Localização de cada morada por My Geocode e rota por OSRM de demonstração, com aviso de privacidade e serviços externos.
+- Apresentação das moradas identificadas, sinalização de precisão insuficiente e tratamento de erros/indisponibilidade.
+- Custo equivalente por quilómetro calculado apenas a partir de um preço real registado, sem inventar tarifas por distância.
+- Última medição guardada no backup local, compatível com a estrutura anterior.
+- Cinco novos testes de rotas; total de onze testes automatizados.
+
 ## 1.0.0, 30/10/2026
 
 - Primeira versão funcional web/PWA para comparação manual Uber/Bolt.

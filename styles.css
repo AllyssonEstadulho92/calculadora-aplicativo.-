@@ -13,3 +13,11 @@ dialog{border:1px solid var(--line);width:min(540px,calc(100vw - 26px));max-heig
 @media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important;transition:none!important}}
 .provider-track{min-width:0;accent-color:#326c51;overflow:visible}.provider-track.bolt{accent-color:#94d15e}
 .previous-price{display:block;font-size:10px;color:#94a397;font-weight:600;max-width:145px;white-space:normal;margin-left:auto}
+.distance-box{border:1px solid #e0eadf;background:#fafdfa;border-radius:15px;padding:14px;margin:-4px 0 19px}
+.distance-head{display:flex;align-items:center;justify-content:space-between;gap:9px;font-size:12px}.distance-head .mini-tag{font-size:9px}
+.distance-result{font-size:12px;color:#687f6c;margin:12px 0;line-height:1.6}.distance-result small{display:block;color:#7b9385;margin-top:9px;font-size:10px}
+.distance-metrics{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-bottom:12px}.distance-metrics strong{background:#e9f7e6;color:#235441;border-radius:10px;padding:9px 11px;font-size:23px;line-height:1.25;font-variant-numeric:tabular-nums}
+.distance-locations{display:flex;flex-direction:column;gap:4px;overflow-wrap:anywhere;font-size:11px}
+.distance-warning{color:#895e28;background:#fff5de;border-radius:9px;padding:9px;margin:10px 0;font-size:11px}
+.distance-box>.map-button{display:block;background:white;cursor:pointer}.distance-box>.map-button:hover{background:#eff7ec}
+.distance-box .field-help{margin:12px 0 0;font-size:10px}.distance-box .field-help a{text-decoration:underline;text-underline-offset:2px;color:#326d50}

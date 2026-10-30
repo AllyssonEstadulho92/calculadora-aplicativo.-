@@ -7,6 +7,7 @@
 - [x] Impedir inferir preço real apenas a partir de distância ou duração.
 - [x] Registar cálculos em cêntimos inteiros e incluir testes.
 - [ ] Validar a experiência num iPhone real, incluindo instalação PWA e exportação/importação.
+- [ ] Confirmar a precisão da morada selecionada e a resposta real de My Geocode e OSRM em diferentes trajetos; fornecedor externo pode falhar.
 
 ## P1
 
@@ -19,5 +20,6 @@
 ## P2
 
 - [ ] Avaliar OCR privado no dispositivo, com revisão obrigatória de preços e descontos reconhecidos.
-- [ ] Avaliar integração de mapas/distâncias legalmente permitida, sem transformar em preços falsos.
+- [x] Acrescentar consulta pontual de distância/duração via serviços externos, com aviso contextual e sem transformar em preços falsos.
+- [ ] Avaliar substituição do servidor OSRM de demonstração por serviço de rotas com garantia de disponibilidade, se a aplicação crescer.
 - [ ] Investigar integração oficial somente se os termos das plataformas autorizarem o caso de uso.
